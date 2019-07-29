@@ -1,9 +1,9 @@
 <template>
   <div class="models">  
-    <h1 > list{{ msg }}</h1>
+    <h1 v-on:click="refresh"> list{{ msg }}</h1>
+
     <div v-for="model in models" class="hello">
       {{model.name}}
-
     </div>
   </div>
 </template>
@@ -27,10 +27,10 @@ export default {
     },  
   methods: {
     list: function() {
-      this.$store
-        .dispatch("list")
-    //    .then(() => this.model = this.$store.getters.models)
-        .catch(err => console.log(err));
+      this.$store.dispatch("list")
+    },
+    refresh: function() {
+      this.$store.dispatch("refresh")
     }
   }
     
@@ -54,3 +54,10 @@ a {
   color: #42b983;
 }
 </style>
+        .catch(err => function(){
+            if (err.response) { 
+              alert('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+        });
