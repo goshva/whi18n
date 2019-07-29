@@ -5,7 +5,7 @@ import axios from 'axios'
 const ax = axios.create();
 ax.defaults.headers.post['Content-Type'] = 'application/json';
 ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
-ax.defaults.headers.common['Accept-Language'] = 'Bearer '+localStorage.getItem('lang')
+ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
 
 ax.interceptors.response.use(
   res => {
@@ -27,7 +27,9 @@ export default new Vuex.Store({
     status: '',
     token: localStorage.getItem('token') || '',
     user: {},
-    models:{}
+    models:{},
+    langs:[],
+    mylang:''
   },
   mutations: {
     auth_request(state) {
@@ -43,6 +45,9 @@ export default new Vuex.Store({
     },
     modelsUpdate(state,models) {
       state.models = models
+    },
+    get_langs(state,langs) {
+      state.langs = langs
     },
     logout(state) {
       state.status = ''
@@ -72,7 +77,7 @@ export default new Vuex.Store({
           })
       })
     },
-    refresh({ commit }) {
+    refresh({ commit, dispatch}) {
       return new Promise((resolve, reject) => {
       const id = localStorage.getItem('id')
       const secret = localStorage.getItem('secret')
@@ -89,6 +94,7 @@ export default new Vuex.Store({
             localStorage.setItem('secret', session.secret)
             commit('auth_success', token, user)
             resolve(resp)
+            dispatch("list");
           })
           .catch(err => {
             alert(err.response.headers["x-message"])
@@ -117,6 +123,23 @@ export default new Vuex.Store({
           })
       })
     },
+    langs({ commit }) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/languages`, method: 'GET' })
+          .then(resp => {
+            commit('get_langs', resp.data);
+            resolve(resp)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    mylang({ dispatch }, code) {
+      localStorage.setItem('lang', code)
+      ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
+      dispatch("list");
+    },
     getModel({ commit },model) {
       return new Promise((resolve, reject) => {
         ax({ url: `/v2/translation/${model.id}`, method: 'GET' })
@@ -135,7 +158,6 @@ export default new Vuex.Store({
           .then(resp => {
             const token = resp.data.token
             const user = resp.data.user
-            //localStorage.setItem('token', token)
             // Add the following line:
             commit('auth_success', token, user)
             resolve(resp)
@@ -162,6 +184,7 @@ export default new Vuex.Store({
   getters: {
     isLoggedIn: state => !!state.token,
     authStatus: state => state.status,
-    models: state => state.models
+    models: state => state.models,
+    langs: state => state.langs
   }
 })

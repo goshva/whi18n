@@ -2,7 +2,7 @@
   <div class="models">  
     <h1 v-on:click="refresh"> list{{ msg }}</h1>
 
-    <div v-for="model in models" class="hello">
+    <div v-for="model in models" class="hello" v-bind:key="model.name">
       {{model.name}}
     </div>
   </div>
