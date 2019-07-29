@@ -98,7 +98,7 @@ export default new Vuex.Store({
           })
       })
     },
-    list({ commit, dispatch }) {
+    list({ commit }) {
       return new Promise((resolve, reject) => {
         ax({ url: '/v2/translations' })
           .then(resp => {
@@ -107,16 +107,11 @@ export default new Vuex.Store({
             resolve(resp)
           })
           .catch(err => {
-              //
             if (err.response) { 
               console.log('error.client_error')
-            //  dispatch("logout")
-
-
             } else {  
               alert('error.server_error')
             }
-
             commit('auth_error')
             reject(err)
           })
@@ -126,15 +121,9 @@ export default new Vuex.Store({
       return new Promise((resolve, reject) => {
         ax({ url: `/v2/translation/${model.id}`, method: 'GET' })
           .then(resp => {
-            const token = resp.headers["x-access-token"]
-            const user = resp.data.user
-            localStorage.setItem('token', token)
             resolve(resp)
           })
           .catch(err => {
-            alert(err.response.headers["x-message"])
-            commit('auth_error')
-            localStorage.removeItem('token')
             reject(err)
           })
       })
