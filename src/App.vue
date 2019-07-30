@@ -5,7 +5,7 @@
           :options="arrayOfObjects" 
           :selected="object" 
           v-on:updateOption="methodToRunOnSelect" 
-          :placeholder="'Select an Item'">
+          :placeholder="'Choose Language'">
       </dropdown>
       <span v-if="isLoggedIn"> | <a @click="logout">🔓</a></span>
       <span v-else> | 
@@ -21,13 +21,6 @@
 import dropdown from 'vue-dropdowns';
 
 export default {
-  data() {
-    return {
-      object: {
-         name: 'Choose Language',
-      }, 
-    }
-  },
   components: {
     'dropdown': dropdown,
   },
@@ -38,9 +31,14 @@ export default {
     arrayOfObjects: function() {
       return this.$store.getters.langs;
     },
-    object: function(){
-      return 'test'  
-    }  
+    object: {
+    get: function () {
+      return localStorage.getItem('mylang') || ''
+    },
+    set: function (newValue) {
+      localStorage.setItem('mylang', newValue)
+    }
+  }
   },
   mounted: function(){
         this.langs();
