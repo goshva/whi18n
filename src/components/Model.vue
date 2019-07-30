@@ -1,9 +1,8 @@
 <template>
   <div class="models">  
-    <h1 v-on:click="refresh"> list{{ msg }}</h1>
-
-    <div v-for="model in models" class="hello" v-bind:key="model.name">
-      {{model.name}}
+    <div v-for="(model,index) in models" class="list" v-bind:key="model.id">
+        <label>{{model.name}} </label>
+        <input  :value="model.native" name="text"  contenteditable="true" spellcheck class="noBorder" ref="natives">
     </div>
   </div>
 </template>
@@ -11,9 +10,6 @@
 <script>
 export default {
   name: 'Model',
-  props: {
-    msg: String
-  },
   computed: {
     isLoggedIn: function() {
       return this.$store.getters.isLoggedIn;
@@ -27,37 +23,38 @@ export default {
     },  
   methods: {
     list: function() {
-      this.$store.dispatch("list")
+        this.$store.dispatch("list").then(() =>
+          this.$refs.natives[0].focus()
+        )
     },
     refresh: function() {
       this.$store.dispatch("refresh")
+    },
+    focus: function() {
+   //   this.$refs.natives[0].focus()
     }
   }
     
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+<style lang="sass">
+.list 
+	display: flex 
+	justify-content: space-between 
+	max-width: 382px 
+	margin: auto 
+	border-bottom: 1px  solid #eee 
+input 
+	border: none 
+h3 
+	margin: 40px 0 0 
+ul 
+	list-style-type: none 
+	padding: 0 
+li 
+	display: inline-block 
+	margin: 0 10px 
+a 
+	color: #42b983 
 </style>
-        .catch(err => function(){
-            if (err.response) { 
-              alert('error.client_error')
-            } else {  
-              alert('error.server_error')
-            }
-        });
