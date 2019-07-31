@@ -212,17 +212,6 @@ export default new Vuex.Store({
           })
       })
     },
-    getModel({ commit },model) {
-      return new Promise((resolve, reject) => {
-        ax({ url: `/v2/translation/${model.id}`, method: 'GET' })
-          .then(resp => {
-            resolve(resp)
-          })
-          .catch(err => {
-            reject(err)
-          })
-      })
-    },
     logout({ commit }) {
       //return new Promise((resolve, reject) => {
       return new Promise((resolve) => {

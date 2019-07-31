@@ -1,6 +1,6 @@
 <template>
     <div class="models">  
-    <div v-for="(model,index) in models" class="list" v-bind:key="model.id">
+    <div v-for="model in models" class="list" v-bind:key="model.id">
         <input
            v-model="model.name"
            name="text"
