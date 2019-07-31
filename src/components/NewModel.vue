@@ -33,7 +33,7 @@ export default {
   methods: {
     newModelAdd: function(newModel) {
           this.$store.dispatch("newModelAdd",newModel).then(() =>
-            this.newModel = {name:'', lexicon:''}
+            this.newModel = {name:'', lexicon:''})
      },
     newModelName: function(model) {
        // if (model.native == null) { model.native = ""}  - why api write "" disabled?
