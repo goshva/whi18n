@@ -20,8 +20,6 @@ ax.interceptors.response.use(
   }
 );
 
-
-
 Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
@@ -29,8 +27,7 @@ export default new Vuex.Store({
     token: localStorage.getItem('token') || '',
     user: {},
     models:{},
-    langs:[],
-    mylang:''
+    langs:[]
   },
   mutations: {
     auth_request(state) {
@@ -93,6 +90,7 @@ export default new Vuex.Store({
             localStorage.setItem('token', token)
             localStorage.setItem('id', session.id)
             localStorage.setItem('secret', session.secret)
+            ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
             commit('auth_success', token, user)
             resolve(resp)
             dispatch("list");
@@ -110,7 +108,6 @@ export default new Vuex.Store({
       return new Promise((resolve, reject) => {
         ax({ url: '/v2/translations' })
           .then(resp => {
-              console.log(resp.data)
             commit('modelsUpdate', resp.data)
             resolve(resp)
           })
@@ -148,6 +145,60 @@ export default new Vuex.Store({
           .then(resp => {
               console.log(resp.data)
     //        commit('modelsUpdate', resp.data)
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
+    newModelAdd({ commit, dispatch },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: '/v2/translation/', method: 'POST', data: { 'name':model.name, 'lexicon': model.lexicon} })
+          .then(resp => {
+            dispatch("list");
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
+    updatename({ commit },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/translation/${model.id}`, method: 'PUT', data: { 'name':model.name, 'lexicon': 0} })
+          .then(resp => {
+              console.log(resp.data)
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
+    removemodel({ commit, dispatch },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/translation/${model.id}`, method: 'DELETE' })
+          .then(resp => {
+              dispatch('list')
             resolve(resp)
           })
           .catch(err => {

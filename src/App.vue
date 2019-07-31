@@ -1,9 +1,9 @@
 <template>
   <div id="app">
-    <div id="nav">
+      <div id="nav">
       <dropdown
           :options="arrayOfObjects" 
-          :selected="object" 
+          :selected="mylang" 
           v-on:updateOption="methodToRunOnSelect" 
           :placeholder="'Choose Language'">
       </dropdown>
@@ -21,6 +21,11 @@
 import dropdown from 'vue-dropdowns';
 
 export default {
+  data() {
+    return {
+      mylang: {}
+    };
+  },
   components: {
     'dropdown': dropdown,
   },
@@ -30,27 +35,19 @@ export default {
     },
     arrayOfObjects: function() {
       return this.$store.getters.langs;
-    },
-    object: {
-    get: function () {
-      return localStorage.getItem('mylang') || ''
-    },
-    set: function (newValue) {
-      localStorage.setItem('mylang', newValue)
     }
-  }
   },
-  mounted: function(){
-        this.langs();
+  created: function(){
+      this.langs()
   },
   methods: {
     langs: function() {
       this.$store.dispatch("langs")
     },
     methodToRunOnSelect(payload) {
-      this.object = payload;
-//      this.code = payload.code.toUpperCase();
-
+         console.log(payload);
+      this.mylang = payload;
+         console.log(this.mylang);
       this.$store.dispatch("mylang", payload.code)
     },
     logout: function() {
