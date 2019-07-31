@@ -1,9 +1,20 @@
 <template>
-  <div class="models">  
-    <h1 > list{{ msg }}</h1>
-    <div v-for="model in models" class="hello">
-      {{model.name}}
-
+    <div class="models">  
+    <div v-for="model in models" class="list" v-bind:key="model.id">
+        <input
+           v-model="model.name"
+           name="text"
+           contenteditable="true"
+           spellcheck class="noBorder"
+           ref="names"
+           v-on:blur="newModelName(model)"/>
+        <input
+           v-model="model.native"
+           name="text"
+           contenteditable="true"
+           spellcheck class="noBorder"
+           ref="natives"
+           v-on:blur="newModelNative(model)"/>
     </div>
   </div>
 </template>
@@ -11,9 +22,6 @@
 <script>
 export default {
   name: 'Model',
-  props: {
-    msg: String
-  },
   computed: {
     isLoggedIn: function() {
       return this.$store.getters.isLoggedIn;
@@ -27,30 +35,51 @@ export default {
     },  
   methods: {
     list: function() {
-      this.$store
-        .dispatch("list")
-    //    .then(() => this.model = this.$store.getters.models)
-        .catch(err => console.log(err));
-    }
+        this.$store.dispatch("list").then(() =>
+          this.$refs.natives[0].focus()
+        )
+    },
+    refresh: function() {
+      this.$store.dispatch("refresh")
+    },
+    newModelNative: function(model) {
+        console.log(model.native)
+       // if (model.native == null) { model.native = ""}  - why api write "" disabled?
+        if (model.native == "") {model.native = ' '}
+          this.$store.dispatch("updatenative",model).then(() =>
+            console.log('model saved'))
+     },
+    newModelName: function(model) {
+        if (model.name == "") { 
+          this.$store.dispatch("removemodel",model).then(() =>
+            console.log('model delete'))
+        } else { 
+          this.$store.dispatch("updatename",model).then(() =>
+            console.log('model saved'))
+        }
+     }
   }
-    
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+<style lang="sass">
+.list 
+	display: flex 
+	justify-content: space-between 
+	max-width: 382px 
+	margin: auto 
+	border-bottom: 1px  solid #eee 
+input 
+	border: none 
+h3 
+	margin: 40px 0 0 
+ul 
+	list-style-type: none 
+	padding: 0 
+li 
+	display: inline-block 
+	margin: 0 10px 
+label
+    &:hover 
+      text-decoration: underline
 </style>

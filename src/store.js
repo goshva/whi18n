@@ -1,15 +1,33 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
+import store from './store' //TODO: import hack need review
+
+const ax = axios.create();
+ax.defaults.headers.post['Content-Type'] = 'application/json';
+ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
+ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
+
+ax.interceptors.response.use(
+  res => {
+    return res;
+  },
+  error => {
+    if (error.response.status === 401) {
+      store.dispatch("refresh")
+    }
+  return Promise.reject(error);
+  }
+);
 
 Vue.use(Vuex)
-
 export default new Vuex.Store({
   state: {
     status: '',
     token: localStorage.getItem('token') || '',
     user: {},
-    models:{}
+    models:{},
+    langs:[]
   },
   mutations: {
     auth_request(state) {
@@ -23,8 +41,11 @@ export default new Vuex.Store({
     auth_error(state) {
       state.status = 'error'
     },
-    modelUpdate(state,models) {
+    modelsUpdate(state,models) {
       state.models = models
+    },
+    get_langs(state,langs) {
+      state.langs = langs
     },
     logout(state) {
       state.status = ''
@@ -35,12 +56,14 @@ export default new Vuex.Store({
     login({ commit }, user) {
       return new Promise((resolve, reject) => {
         commit('auth_request')
-        axios({ url: '/v2/my-session', data: user, method: 'POST' })
+        ax({ url: '/v2/my-session', data: user, method: 'POST' })
           .then(resp => {
             const token = resp.headers["x-access-token"]
             const user = resp.data.user
             localStorage.setItem('token', token)
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            localStorage.setItem('id', resp.data.id)
+            localStorage.setItem('secret', resp.data.secret)
+            ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
             commit('auth_success', token, user)
             resolve(resp)
           })
@@ -52,76 +75,139 @@ export default new Vuex.Store({
           })
       })
     },
-    refresh({ commit },session) {
+    refresh({ commit, dispatch}) {
       return new Promise((resolve, reject) => {
-      //commit('auth_request')
-        axios({ url: `/v2/my-session/${session.id}/refresh`, data: session.secret, method: 'PUT' })
+      const id = localStorage.getItem('id')
+      const secret = localStorage.getItem('secret')
+      commit('auth_request')
+        ax({ url: `/v2/my-session/${id}/refresh`,
+            data: { "secret":secret},
+            method: 'PUT' })
           .then(resp => {
             const token = resp.headers["x-access-token"]
             const user = resp.data.user
+            const session = {id: resp.data.id, secret:resp.data.secret}
             localStorage.setItem('token', token)
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            localStorage.setItem('id', session.id)
+            localStorage.setItem('secret', session.secret)
+            ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
             commit('auth_success', token, user)
             resolve(resp)
+            dispatch("list");
           })
           .catch(err => {
             alert(err.response.headers["x-message"])
             commit('auth_error')
             localStorage.removeItem('token')
+            location.reload()
             reject(err)
           })
       })
     },
     list({ commit }) {
       return new Promise((resolve, reject) => {
-        axios({ url: '/v2/translations' })
+        ax({ url: '/v2/translations' })
+          .then(resp => {
+            commit('modelsUpdate', resp.data)
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
+    langs({ commit }) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/languages`, method: 'GET' })
+          .then(resp => {
+            commit('get_langs', resp.data);
+            resolve(resp)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    mylang({ dispatch }, code) {
+      localStorage.setItem('lang', code)
+      ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
+      dispatch("list");
+    },
+    updatenative({ commit },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/translation/${model.id}/native`, method: 'PUT', data: { 'native':model.native} })
           .then(resp => {
               console.log(resp.data)
-            commit('modelUpdate', resp.data)
+    //        commit('modelsUpdate', resp.data)
             resolve(resp)
           })
           .catch(err => {
-            alert(err.response.headers["x-message"])
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
             commit('auth_error')
             reject(err)
           })
       })
     },
-    getModel({ commit },model) {
+    newModelAdd({ commit, dispatch },model) {
       return new Promise((resolve, reject) => {
-        axios({ url: `/v2/translation/${model.id}`, method: 'GET' })
+        ax({ url: '/v2/translation/', method: 'POST', data: { 'name':model.name, 'lexicon': model.lexicon} })
           .then(resp => {
-            const token = resp.headers["x-access-token"]
-            const user = resp.data.user
-            localStorage.setItem('token', token)
-            axios.defaults.headers.common['Authorization'] = token
-            commit('auth_success', token, user)
+            dispatch("list");
             resolve(resp)
           })
           .catch(err => {
-            alert(err.response.headers["x-message"])
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
             commit('auth_error')
-            localStorage.removeItem('token')
             reject(err)
           })
       })
     },
-    register({ commit }, user) {
+    updatename({ commit },model) {
       return new Promise((resolve, reject) => {
-        commit('auth_request')
-        axios({ url: 'http://localhost:3000/register', data: user, method: 'POST' })
+        ax({ url: `/v2/translation/${model.id}`, method: 'PUT', data: { 'name':model.name, 'lexicon': 0} })
           .then(resp => {
-            const token = resp.data.token
-            const user = resp.data.user
-            localStorage.setItem('token', token)
-            // Add the following line:
-            axios.defaults.headers.common['Authorization'] = token
-            commit('auth_success', token, user)
+              console.log(resp.data)
             resolve(resp)
           })
           .catch(err => {
-            commit('auth_error', err)
-            localStorage.removeItem('token')
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
+    removemodel({ commit, dispatch },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/translation/${model.id}`, method: 'DELETE' })
+          .then(resp => {
+              dispatch('list')
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
             reject(err)
           })
       })
@@ -131,7 +217,9 @@ export default new Vuex.Store({
       return new Promise((resolve) => {
         commit('logout')
         localStorage.removeItem('token')
-        delete axios.defaults.headers.common['Authorization']
+        localStorage.removeItem('id')
+        localStorage.removeItem('secret')
+        delete ax.defaults.headers.common['Authorization']
         resolve()
       })
     }
@@ -139,6 +227,7 @@ export default new Vuex.Store({
   getters: {
     isLoggedIn: state => !!state.token,
     authStatus: state => state.status,
-    models: state => state.models
+    models: state => state.models,
+    langs: state => state.langs
   }
 })
