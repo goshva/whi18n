@@ -1,53 +1,39 @@
 <template>
     <div class="models">  
-    <div v-for="(model,index) in models" class="list" v-bind:key="model.id">
+    <div class="list">
         <input
-           v-model="model.name"
+           v-model="newModel.name"
            name="text"
+           placeholder="+🆕"
            contenteditable="true"
            spellcheck class="noBorder"
            ref="names"
-           v-on:blur="newModelName(model)"/>
+           />
         <input
-           v-model="model.native"
+           v-if="newModel.name"
+           v-model="newModel.lexicon"
            name="text"
+           placeholder="lexicon"
            contenteditable="true"
            spellcheck class="noBorder"
            ref="natives"
-           v-on:blur="newModelNative(model)"/>
+           v-on:blur="newModelAdd(newModel)"/>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Model',
-  computed: {
-    isLoggedIn: function() {
-      return this.$store.getters.isLoggedIn;
-    },
-    models: function() {
-      return this.$store.getters.models;
-    }
-  },
-    mounted: function(){
-        this.list();
-    },  
+  name: 'MewModel',
+  data() {
+    return {
+      newModel: {name:'', lexicon:''},
+    };
+  },    
   methods: {
-    list: function() {
-        this.$store.dispatch("list").then(() =>
-          this.$refs.natives[0].focus()
-        )
-    },
-    refresh: function() {
-      this.$store.dispatch("refresh")
-    },
-    newModelNative: function(model) {
-       // if (model.native == null) { model.native = ""}  - why api write "" disabled?
-        if (model.native !== null) { 
-          this.$store.dispatch("updatenative",model).then(() =>
-            console.log('model saved'))
-        }
+    newModelAdd: function(newModel) {
+          this.$store.dispatch("newModelAdd",newModel).then(() =>
+            this.newModel = {name:'', lexicon:''}
      },
     newModelName: function(model) {
        // if (model.native == null) { model.native = ""}  - why api write "" disabled?
