@@ -28,33 +28,38 @@ export default {
     },
     models: function() {
       return this.$store.getters.models;
-    }
-  },
+      }
+    },
+    created () {
+      setInterval(() => {
+		this.$store.dispatch('list');
+      }, 60000)
+    },
     mounted: function(){
         this.list();
     },  
   methods: {
     list: function() {
-        this.$store.dispatch("list").then(() =>
+        this.$store.dispatch('list').then(() =>
           this.$refs.natives[0].focus()
         )
     },
     refresh: function() {
-      this.$store.dispatch("refresh")
+      this.$store.dispatch('refresh')
     },
     newModelNative: function(model) {
         console.log(model.native)
        // if (model.native == null) { model.native = ""}  - why api write "" disabled?
-        if (model.native == "") {model.native = ' '}
-          this.$store.dispatch("updatenative",model).then(() =>
+        if (model.native == '') {model.native = ' '}
+          this.$store.dispatch('updatenative',model).then(() =>
             console.log('model saved'))
      },
     newModelName: function(model) {
-        if (model.name == "") { 
-          this.$store.dispatch("removemodel",model).then(() =>
+        if (model.name == '') { 
+          this.$store.dispatch('removemodel',model).then(() =>
             console.log('model delete'))
         } else { 
-          this.$store.dispatch("updatename",model).then(() =>
+          this.$store.dispatch('updatename',model).then(() =>
             console.log('model saved'))
         }
      }
