@@ -18,6 +18,10 @@ $ npm install
 ```bash
 $ npm run serve
 ```
+### /etc/hosts
+```bash
+127.0.0.1      whi18n
+```
 ## nginx conf
 ```bash
 upstream dev-wh {
