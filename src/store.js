@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
+import store from './store' //TODO: import hack need review
 
 const ax = axios.create();
 ax.defaults.headers.post['Content-Type'] = 'application/json';
@@ -13,7 +14,7 @@ ax.interceptors.response.use(
   },
   error => {
     if (error.response.status === 401) {
-   //   vue.$store.commit('signOut');
+      store.dispatch("refresh")
     }
   return Promise.reject(error);
   }
@@ -100,6 +101,7 @@ export default new Vuex.Store({
             alert(err.response.headers["x-message"])
             commit('auth_error')
             localStorage.removeItem('token')
+            location.reload()
             reject(err)
           })
       })
@@ -140,6 +142,25 @@ export default new Vuex.Store({
       ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
       dispatch("list");
     },
+    updatenative({ commit },model) {
+      return new Promise((resolve, reject) => {
+        ax({ url: `/v2/translation/${model.id}/native`, method: 'PUT', data: { 'native':model.native} })
+          .then(resp => {
+              console.log(resp.data)
+    //        commit('modelsUpdate', resp.data)
+            resolve(resp)
+          })
+          .catch(err => {
+            if (err.response) { 
+              console.log('error.client_error')
+            } else {  
+              alert('error.server_error')
+            }
+            commit('auth_error')
+            reject(err)
+          })
+      })
+    },
     getModel({ commit },model) {
       return new Promise((resolve, reject) => {
         ax({ url: `/v2/translation/${model.id}`, method: 'GET' })
@@ -147,24 +168,6 @@ export default new Vuex.Store({
             resolve(resp)
           })
           .catch(err => {
-            reject(err)
-          })
-      })
-    },
-    register({ commit }, user) {
-      return new Promise((resolve, reject) => {
-        commit('auth_request')
-        ax({ url: 'http://localhost:3000/register', data: user, method: 'POST' })
-          .then(resp => {
-            const token = resp.data.token
-            const user = resp.data.user
-            // Add the following line:
-            commit('auth_success', token, user)
-            resolve(resp)
-          })
-          .catch(err => {
-            commit('auth_error', err)
-            localStorage.removeItem('token')
             reject(err)
           })
       })
