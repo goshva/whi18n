@@ -1,8 +1,8 @@
 <template>
-  <div class="models">  
+    <div class="models">  
     <div v-for="(model,index) in models" class="list" v-bind:key="model.id">
         <label>{{model.name}} </label>
-        <input  :value="model.native" name="text"  contenteditable="true" spellcheck class="noBorder" ref="natives">
+        <input  v-model="model.native" name="text"  contenteditable="true" spellcheck class="noBorder" ref="natives" v-on:blur="handleBlur(model)">
     </div>
   </div>
 </template>
@@ -30,8 +30,9 @@ export default {
     refresh: function() {
       this.$store.dispatch("refresh")
     },
-    focus: function() {
-   //   this.$refs.natives[0].focus()
+    handleBlur: function(model) {
+        this.$store.dispatch("updatenative",model).then(() =>
+          console.log('model saved'))
     }
   }
     
