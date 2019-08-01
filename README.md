@@ -25,7 +25,7 @@ $ npm run serve
 ## nginx conf
 ```bash
 upstream dev-wh {
-    server 127.0.0.1:8081;
+    server 127.0.0.1:8080;
     keepalive 16;
 }
 
