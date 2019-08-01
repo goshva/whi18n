@@ -3,10 +3,12 @@ import Vuex from 'vuex'
 import axios from 'axios'
 import store from './store' //TODO: import hack need review
 
+const api = 'https://test.whteam.net'
 const ax = axios.create();
 ax.defaults.headers.post['Content-Type'] = 'application/json';
 ax.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem('token')
 ax.defaults.headers.common['Accept-Language'] = localStorage.getItem('lang')
+ax.defaults.headers.common['Access-Control-Allow-Origin'] = '*'
 
 ax.interceptors.response.use(
   res => {
@@ -56,7 +58,7 @@ export default new Vuex.Store({
     login({ commit }, user) {
       return new Promise((resolve, reject) => {
         commit('auth_request')
-        ax({ url: '/v2/my-session', data: user, method: 'POST' })
+        ax({ url: api+ '/v2/my-session', data: user, method: 'POST' })
           .then(resp => {
             const token = resp.headers["x-access-token"]
             const user = resp.data.user
@@ -80,7 +82,7 @@ export default new Vuex.Store({
       const id = localStorage.getItem('id')
       const secret = localStorage.getItem('secret')
       commit('auth_request')
-        ax({ url: `/v2/my-session/${id}/refresh`,
+        ax({ url: `${api}/v2/my-session/${id}/refresh`,
             data: { "secret":secret},
             method: 'PUT' })
           .then(resp => {
@@ -106,7 +108,7 @@ export default new Vuex.Store({
     },
     list({ commit }) {
       return new Promise((resolve, reject) => {
-        ax({ url: '/v2/translations' })
+        ax({ url: api+ '/v2/translations' })
           .then(resp => {
             commit('modelsUpdate', resp.data)
             resolve(resp)
@@ -124,7 +126,7 @@ export default new Vuex.Store({
     },
     langs({ commit }) {
       return new Promise((resolve, reject) => {
-        ax({ url: `/v2/languages`, method: 'GET' })
+        ax({ url: `${api}/v2/languages`, method: 'GET' })
           .then(resp => {
             commit('get_langs', resp.data);
             resolve(resp)
@@ -141,7 +143,7 @@ export default new Vuex.Store({
     },
     updatenative({ commit },model) {
       return new Promise((resolve, reject) => {
-        ax({ url: `/v2/translation/${model.id}/native`, method: 'PUT', data: { 'native':model.native} })
+        ax({ url: `${api}/v2/translation/${model.id}/native`, method: 'PUT', data: { 'native':model.native} })
           .then(resp => {
               console.log(resp.data)
     //        commit('modelsUpdate', resp.data)
@@ -160,7 +162,7 @@ export default new Vuex.Store({
     },
     newModelAdd({ commit, dispatch },model) {
       return new Promise((resolve, reject) => {
-        ax({ url: '/v2/translation/', method: 'POST', data: { 'name':model.name, 'lexicon': model.lexicon} })
+        ax({ url: api+ '/v2/translation/', method: 'POST', data: { 'name':model.name, 'lexicon': model.lexicon} })
           .then(resp => {
             dispatch("list");
             resolve(resp)
@@ -178,7 +180,7 @@ export default new Vuex.Store({
     },
     updatename({ commit },model) {
       return new Promise((resolve, reject) => {
-        ax({ url: `/v2/translation/${model.id}`, method: 'PUT', data: { 'name':model.name, 'lexicon': 0} })
+        ax({ url: `${api}/v2/translation/${model.id}`, method: 'PUT', data: { 'name':model.name, 'lexicon': 0} })
           .then(resp => {
               console.log(resp.data)
             resolve(resp)
@@ -196,7 +198,7 @@ export default new Vuex.Store({
     },
     removemodel({ commit, dispatch },model) {
       return new Promise((resolve, reject) => {
-        ax({ url: `/v2/translation/${model.id}`, method: 'DELETE' })
+        ax({ url: `${api}/v2/translation/${model.id}`, method: 'DELETE' })
           .then(resp => {
               dispatch('list')
             resolve(resp)
