@@ -1,14 +1,30 @@
-#!/bin/bash
-# Sync master branch and prepare staging branch.
-git checkout master
-git pullgit checkout -B gh-pages-staging
-git branch -D gh-pages 
-# Build storybook-static for staging and push to gh-pages.
+
+# deploy.sh
+
+#!/usr/bin/env sh
+
+# abort on errors
+set -e
+
+# build
+echo Linting..
+npm run lint
+echo Building. this may take a minute...
 npm run build
-git add -f build
-git commit -m "Add gh-pages"
-git subtree split --prefix build -b gh-pages
-git push origin -f gh-pages:gh-pages 
-# Clean up branches and files.
-git checkout master
-git branch -D gh-pages gh-pages-staging
+
+# navigate into the build output directory
+cd dist
+
+# if you are deploying to a custom domain
+# echo 'example.com' > CNAME
+
+echo Deploying..
+git init
+git add -A
+git commit -m 'deploy'
+
+# deploy
+git push -f git@github.com:goshva/whi18n.git gh-pages
+
+cd -
+
