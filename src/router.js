@@ -31,8 +31,8 @@ let router = new Router({
       component: Register
     },
     {
-      path: '/resources',
-      name: 'resources',
+      path: '/whi18n',
+      name: 'whi18n',
       component: Resource,
       meta: {
         requiresAuth: true
